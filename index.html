@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Audit Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #bc1888;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(188, 24, 136, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.high-risk {
+            background-color: #ffebee;
+            border: 2px solid #f44336;
+            color: #c62828;
+        }
+
+        .result.suspicious {
+            background-color: #fff3e0;
+            border: 2px solid #ff9800;
+            color: #e65100;
+        }
+
+        .result.organic {
+            background-color: #e8f5e9;
+            border: 2px solid #4caf50;
+            color: #2e7d32;
+        }
+
+        .result-message {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .engagement-rate {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .rate-label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .result-message {
+                font-size: 16px;
+            }
+
+            .engagement-rate {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Instagram Audit Tool</h1>
+            <p>Check if your account has real or fake followers</p>
+        </div>
+
+        <form id="auditForm">
+            <div class="form-group">
+                <label for="username">Instagram Username</label>
+                <input type="text" id="username" placeholder="@your_username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="followers">Number of Followers</label>
+                <input type="number" id="followers" placeholder="e.g. 5000" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="avgLikes">Average Likes on Last 3 Posts</label>
+                <input type="number" id="avgLikes" placeholder="e.g. 200" min="0" required>
+            </div>
+
+            <button type="submit" class="btn">Check Now</button>
+        </form>
+
+        <div id="result" class="result">
+            <div class="result-message" id="resultMessage"></div>
+            <div class="engagement-rate" id="engagementRate"></div>
+            <div class="rate-label">Engagement Rate</div>
+        </div>
+    </div>
+
+    <script>
+        // Get form and result elements
+        const form = document.getElementById('auditForm');
+        const resultDiv = document.getElementById('result');
+        const resultMessage = document.getElementById('resultMessage');
+        const engagementRate = document.getElementById('engagementRate');
+
+        // Handle form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent page reload
+
+            // Get input values
+            const followers = parseFloat(document.getElementById('followers').value);
+            const avgLikes = parseFloat(document.getElementById('avgLikes').value);
+
+            // Calculate engagement rate
+            // Formula: (average_likes / followers) * 100
+            const rate = (avgLikes / followers) * 100;
+            const rateRounded = rate.toFixed(2); // Round to 2 decimal places
+
+            // Remove previous result classes
+            resultDiv.classList.remove('high-risk', 'suspicious', 'organic');
+
+            // Determine result based on engagement rate
+            if (rate < 1) {
+                // High risk - less than 1%
+                resultDiv.classList.add('high-risk');
+                resultMessage.textContent = '⚠️ High Risk of Fake Followers';
+            } else if (rate >= 1 && rate <= 3) {
+                // Suspicious - between 1% and 3%
+                resultDiv.classList.add('suspicious');
+                resultMessage.textContent = '⚠️ Suspicious / Low Engagement';
+            } else {
+                // Organic - greater than 3%
+                resultDiv.classList.add('organic');
+                resultMessage.textContent = '✅ Organic / Real Audience';
+            }
+
+            // Display engagement rate
+            engagementRate.textContent = rateRounded + '%';
+
+            // Show result with animation
+            resultDiv.classList.add('show');
+        });
+    </script>
+</body>
+</html>
